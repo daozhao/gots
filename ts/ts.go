@@ -53,6 +53,50 @@ func newPacket(data []byte) (*Packet, error) {
 	return p, nil
 }
 
+func writePacket(p Packet,playLoad []byte)(data []byte) {
+	data = make([]byte,PacketSize)
+
+	data[0] = SyncByte
+
+	data[1] = 0
+	if p.TransportErrorIndicator {
+		data[1] |= 0x80
+	}
+	if p.PayloadUnitStartIndicator {
+		data[1] |= 0x40
+	}
+	if p.TransportPriority {
+		data[1] |= 0x20
+	}
+
+	data[1] |= uint8(p.PID >> 8) & 0x1F
+
+	data[2] = uint8(p.PID & 0x00FF)
+
+	data[3] = p.TransportScramblingControl & 0xC0
+	if p.ContainsAdaptationField {
+		data[3] |= 0x20
+	}
+	if p.ContainsPayload {
+		data[3] |= 0x10
+	}
+	data[3] |= p.ContinuityCounter & 0x0F
+
+	if p.ContainsAdaptationField {
+		writeAdaptationField(data[4:],p.AdaptationField)
+	}
+
+	if p.ContainsPayload {
+		if p.ContainsAdaptationField {
+           copy(data[5+p.AdaptationField.AdaptationFieldLength:PacketSize],p.Payload)
+        } else {
+           copy(data[4:PacketSize],p.Payload)
+        }
+	}
+
+	return data
+}
+
 func (p Packet) hasProgramMapTable(pat *ProgramAssociationTable) bool {
 	if pat == nil {
 		return false

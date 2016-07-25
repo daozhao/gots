@@ -45,13 +45,73 @@ func newAdaptationField(data []byte) *AdaptationField {
 		af.SpliceCountdown = data[i]
 		i += 1
 	}
+	//TODO: 这里估计有问题,重复了.
 	if af.ContainsSplicingPoint {
 		af.SpliceCountdown = data[i]
 		i += 1
 	}
 	if af.ContainsTransportPrivateData {
 		af.TransportPrivateDataLenght = data[i]
-		af.PrivateData = data[i:af.TransportPrivateDataLenght]
+		af.PrivateData = data[i:i+int(af.TransportPrivateDataLenght)]
 	}
 	return af
+}
+
+func writeAdaptationField(data []byte,af *AdaptationField){
+
+	data[0] = af.AdaptationFieldLength
+
+	if af.AdaptationFieldLength == 0 {
+		return
+	}
+	data[1] = 0
+	if af.DiscontinuityIndicator {
+		data[1] |= 0x80
+	}
+	if af.RandomAccessIndicator {
+		data[1] |= 0x40
+	}
+	if af.ElementaryStreamPriorityIndicator {
+		data[1] |= 0x20
+	}
+	if af.ContainsPCR {
+		data[1] |= 0x10
+	}
+	if af.ContainsOPCR {
+		data[1] |= 0x08
+	}
+	if af.ContainsSplicingPoint {
+		data[1] |= 0x04
+	}
+	if af.ContainsTransportPrivateData {
+		data[1] |= 0x02
+	}
+    if af.ContainsAdaptationFieldExtension {
+        data[1] |= 0x01
+    }
+    i := 2
+	if af.ContainsPCR {
+		copy(data[i : i+6],af.PCR)
+		i += 6
+	}
+	if af.ContainsOPCR {
+		copy(data[i : i+6],af.OPCR)
+		i += 6
+	}
+	if af.ContainsSplicingPoint {
+		data[i] = af.SpliceCountdown
+		i += 1
+	}
+	//TODO: 这里估计有问题,重复了.
+	if af.ContainsSplicingPoint {
+		data[i] = af.SpliceCountdown
+		i += 1
+	}
+	if af.ContainsTransportPrivateData {
+		data[i] = af.TransportPrivateDataLenght
+		copy(data[i:i+int(af.TransportPrivateDataLenght)],af.PrivateData)
+	}
+
+
+
 }

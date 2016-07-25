@@ -3,6 +3,7 @@ package pes
 import (
 	"fmt"
 	"time"
+	"encoding/hex"
 )
 
 func StreamId(value uint8) string {
@@ -65,31 +66,41 @@ func (p Packet) String() string {
 	return fmt.Sprintf("\tCode Prefix: %x\n"+
 		"\tStream ID: %x [%s]\n"+
 		"\tPacket Length: %d\n"+
-		"%s",
+		"%s"+
+		"\tPayload :\n"+
+		"%s\n"+
+        "-----------------------------------"+
+        "\tBody:\n"+
+        "%s\n",
 		p.CodePrefix,
 		p.StreamID,
 		StreamId(p.StreamID),
 		p.PacketLength,
-		p.Header)
+		p.Header,
+	    hex.Dump(p.Payload),
+        hex.Dump(p.Body))
+
+
 }
 
+
 func (h Header) String() string {
-	return fmt.Sprintf("\tScramblingControl: %x\n"+
-		"\tPriority: %t\n"+
-		"\tDataAlignmentIndicator: %t\n"+
-		"\tCopyright: %t\n"+
-		"\tOriginal: %t\n"+
-		"\tContains PTS: %t\n"+
-		"\tContains DTS: %t\n"+
-		"\tContains ESCR: %t\n"+
-		"\tContains ESRate: %t\n"+
-		"\tContains DSMTrickMode: %t\n"+
-		"\tContains AdditionalCopyInfo: %t\n"+
-		"\tContains CRC: %t\n"+
-		"\tContains Extension: %t\n"+
-		"\tHeaderLength: %d\n"+
-		"\tPTS: %d [%s]\n"+
-		"\tDTS: %d [%s]",
+	return fmt.Sprintf("\t\tScramblingControl: %x\n"+
+		"\t\tPriority: %t\n"+
+		"\t\tDataAlignmentIndicator: %t\n"+
+		"\t\tCopyright: %t\n"+
+		"\t\tOriginal: %t\n"+
+		"\t\tContains PTS: %t\n"+
+		"\t\tContains DTS: %t\n"+
+		"\t\tContains ESCR: %t\n"+
+		"\t\tContains ESRate: %t\n"+
+		"\t\tContains DSMTrickMode: %t\n"+
+		"\t\tContains AdditionalCopyInfo: %t\n"+
+		"\t\tContains CRC: %t\n"+
+		"\t\tContains Extension: %t\n"+
+		"\t\tHeaderLength: %d\n"+
+		"\t\tPTS: %d [%s]\n"+
+		"\t\tDTS: %d [%s]\n",
 		h.ScramblingControl,
 		h.Priority,
 		h.DataAlignmentIndicator,
