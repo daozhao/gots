@@ -2,6 +2,9 @@ package ts
 
 import (
     "encoding/binary"
+	"bytes"
+	"fmt"
+	"hash/crc32"
 )
 
 type ProgramAssociationTable struct {
@@ -56,6 +59,7 @@ func newPogramAssociationTable(payload []byte) *ProgramAssociationTable {
 	data := payload[1+payload[0]:]
 	a := &ProgramAssociationTable{
 		TableId:                data[0],
+		//TODO: 确认是否移位7????
 		SectionSyntaxIndicator: data[1]&0x80>>7 == 1,
 		SectionLenght:          uint16(data[1]&0x0F)<<8 | uint16(data[2]),
 		TransportStreamId:      uint16(data[3])<<8 | uint16(data[4]),
@@ -76,11 +80,15 @@ func newPogramAssociationTable(payload []byte) *ProgramAssociationTable {
 		a.Programs = append(a.Programs, p)
 		i += 4
 	}
+	fmt.Printf("========================CRC:%X\n",crc32.Checksum(data,crc32.MakeTable(0xD5828281)))
 	a.CRC32 = uint32(data[i])<<24 | uint32(data[i+1])<<16 | uint32(data[i+2])<<8 | uint32(data[i+3])
 	return a
 }
 
-func writePogramAssociationTable(pat *ProgramAssociationTable,payload []byte) {
+func WritePogramAssociationTable(pat *ProgramAssociationTable)(payload []byte) {
+
+	//payload = make([]byte,PacketSize-4)
+	payload = bytes.Repeat([]byte{0xFF},PacketSize-4)
 
 	payload[0] = 0x00
 	data := payload[1+payload[0]:]
@@ -117,8 +125,10 @@ func writePogramAssociationTable(pat *ProgramAssociationTable,payload []byte) {
         i += 4
     }
 
+	//TODO: 需要计算CRC32的值.
     binary.BigEndian.PutUint32(data[i:i+4],pat.CRC32)
 
+	return payload
 }
 
 func newProgramMapTable(payload []byte) *ProgramMapTable {
@@ -142,7 +152,10 @@ func newProgramMapTable(payload []byte) *ProgramMapTable {
 	return a
 }
 
-func writeProgramMapTable(pmt *ProgramMapTable,payload []byte)  {
+func WriteProgramMapTable(pmt *ProgramMapTable)(payload []byte)  {
+
+	payload = bytes.Repeat([]byte{0xFF},PacketSize-4)
+
     payload[0] = 0x00
     data := payload[1+payload[0]:]
 
@@ -175,9 +188,10 @@ func writeProgramMapTable(pmt *ProgramMapTable,payload []byte)  {
 
 	writeStreamDescriptors(pmt.StreamDescriptors,data[12:int(pmt.ProgramInfoLength)+12])
 	writeElementaryStreams(pmt.ElementaryStreams,data[int(pmt.ProgramInfoLength)+12 : int(pmt.SectionLenght)-1])
-
+//TODO: 需要计算CRC32的值.
     binary.BigEndian.PutUint32(data[int(pmt.SectionLenght-1):int(pmt.SectionLenght+2)],pmt.CRC32)
 
+	return payload
 }
 
 func (p ProgramMapTable) HasElementaryStream(pid uint16) bool {

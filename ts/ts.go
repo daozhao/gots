@@ -97,7 +97,7 @@ func writePacket(p *Packet)(data []byte) {
 	return data
 }
 
-func (p Packet) hasProgramMapTable(pat *ProgramAssociationTable) bool {
+func (p Packet) HasProgramMapTable(pat *ProgramAssociationTable) bool {
 	if pat == nil {
 		return false
 	}
@@ -109,7 +109,7 @@ func (p Packet) hasProgramMapTable(pat *ProgramAssociationTable) bool {
 	return false
 }
 
-func (p Packet) hasProgramAssociationTable() bool {
+func (p Packet) HasProgramAssociationTable() bool {
 	if p.PID == ProgramAssociationTableID {
 		return true
 	}

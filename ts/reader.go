@@ -36,11 +36,11 @@ func (r *Reader) Next() (*Packet, error) {
 		return nil, err
 	}
 	r.OnNewPacket(r.Packet)
-	if r.Packet.hasProgramAssociationTable() {
+	if r.Packet.HasProgramAssociationTable() {
 		r.PAT = newPogramAssociationTable(r.Packet.Payload)
 		r.OnNewPAT(r.PAT)
 	}
-	if r.Packet.hasProgramMapTable(r.PAT) {
+	if r.Packet.HasProgramMapTable(r.PAT) {
 		r.PMT = newProgramMapTable(r.Packet.Payload)
 		r.OnNewPMT(r.PMT)
 	}

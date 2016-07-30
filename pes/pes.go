@@ -8,6 +8,8 @@ import (
 const (
 	StartCodePrefix uint32 = 0x000001
 	MarkerBits      uint16 = 0x02
+	STREAMID_AVC_H264_CODE uint8 = 0xE0
+	STREAMID_AAC_CODE uint8 = 0xC0
 )
 
 type Packet struct {
