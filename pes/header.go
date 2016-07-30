@@ -32,7 +32,9 @@ type Header struct {
 
 func newHeader(data []byte) *Header {
 	h := &Header{
-		ScramblingControl:          data[6] & 0x30 >> 4,
+		//TODO: 这里怀疑是错误的.
+		//ScramblingControl:          data[6] & 0x30 >> 4,
+		ScramblingControl:          data[6] & 0xF0 >> 4,
 		Priority:                   data[6]&0x08>>3 == 1,
 		DataAlignmentIndicator:     data[6]&0x04>>2 == 1,
 		Copyright:                  data[6]&0x02>>1 == 1,
@@ -42,7 +44,8 @@ func newHeader(data []byte) *Header {
 		ContainsDTS:                data[7]&0x40>>6 == 1,
         //TODO: 这里怀疑错误
 		ContainsESCR:               data[7]&0x10>>4 == 1,
-		ContainsESRate:             data[7]&0x10>>4 == 1,
+		ContainsESRate:             data[7]&0x20>>4 == 1,
+        //ContainsESRate:             data[7]&0x10>>4 == 1,
 		ContainsDSMTrickMode:       data[7]&0x08>>3 == 1,
 		ContainsAdditionalCopyInfo: data[7]&0x04>>2 == 1,
 		ContainsCRC:                data[7]&0x02>>1 == 1,
@@ -75,7 +78,7 @@ func writeHeader(h *Header,data []byte){
 	data[1] = 0x00;
 	data[2] = h.HeaderLength;
 
-	data[0] = (h.ScramblingControl << 4) & 0x30
+	data[0] = (h.ScramblingControl << 4) & 0xF0
 	if h.Priority {
 		data[0] |= 0x08
 	}
@@ -96,10 +99,10 @@ func writeHeader(h *Header,data []byte){
         data[1] |= 0x40
     }
     if h.ContainsESCR {
-        data[1] |= 0x20
+        data[1] |= 0x10
     }
     if h.ContainsESRate {
-        data[1] |= 0x10
+        data[1] |= 0x20
     }
     if h.ContainsDSMTrickMode {
         data[1] |= 0x08
@@ -115,31 +118,38 @@ func writeHeader(h *Header,data []byte){
     }
 //TODO: 这个太怪了,检查协议,看看是否有问题.
     if h.ContainsPTS && !h.ContainsDTS {
-        data[9]  = 0x00
-        data[10] = 0x00
-        data[11] = 0x00
-        data[12] = 0x00
-        data[13] = 0x00
+
+	    //h.PTS = uint64(data[9]&0x0E>>1) << 30
+	    //h.PTS = h.PTS | (uint64(data[10])<<8|uint64(data[11]))>>1<<15
+	    //h.PTS = h.PTS | (uint64(data[12])<<8|uint64(data[13]))>>1
+        data[9-6]  = (0x02<<4) |  (uint8((h.PTS >> 30) << 1) & 0x0E) | 0x01
+        data[10-6] = uint8( ( ((h.PTS >> 15 << 1) & 0x000000000000FFFF) >> 8) &  0x00000000000000FF)
+        data[11-6] = uint8(   ((h.PTS >> 15 << 1) & 0x000000000000FFFF)  &  0x00000000000000FF) | 0x01
+
+        data[12-6] = uint8( ( ((h.PTS << 1) & 0x000000000000FFFF) >> 8) &  0x00000000000000FF)
+        data[13-6] = uint8(   ((h.PTS << 1) & 0x000000000000FFFF) &  0x00000000000000FF) | 0x01
         //h.PTS = uint64(data[9]&0x0E>>1) << 30
         //h.PTS = h.PTS | (uint64(data[10])<<8|uint64(data[11]))>>1<<15
         //h.PTS = h.PTS | (uint64(data[12])<<8|uint64(data[13]))>>1
     }
 
     if h.ContainsPTS && h.ContainsDTS {
-        data[9]  = 0x00
-        data[10] = 0x00
-        data[11] = 0x00
-        data[12] = 0x00
-        data[13] = 0x00
-        //h.PTS = uint64(data[9]&0x0E>>1) << 30
-        //h.PTS = h.PTS | (uint64(data[10])<<8|uint64(data[11]))>>1<<15
-        //h.PTS = h.PTS | (uint64(data[12])<<8|uint64(data[13]))>>1
-        //
-        data[14] = 0x00
-        data[15] = 0x00
-        data[16] = 0x00
-        data[17] = 0x00
-        data[18] = 0x00
+        //TODO: 需要高清楚这个0x03是什么意思.参考srs
+        data[9-6]  = (0x03<<4) |  (uint8((h.PTS >> 30) << 1) & 0x0E) | 0x01
+        data[10-6] = uint8( ( ((h.PTS >> 15 << 1) & 0x000000000000FFFF) >> 8) &  0x00000000000000FF)
+        data[11-6] = uint8(   ((h.PTS >> 15 << 1) & 0x000000000000FFFF)  &  0x00000000000000FF) | 0x01
+
+        data[12-6] = uint8( ( ((h.PTS << 1) & 0x000000000000FFFF) >> 8) &  0x00000000000000FF)
+        data[13-6] = uint8(   ((h.PTS << 1) & 0x000000000000FFFF) &  0x00000000000000FF) |  0x01
+
+        //TODO: 需要高清楚这个0x01是什么意思.参考srs
+        data[14-6]  = (0x01<<4) |  (uint8((h.DTS >> 30) << 1) & 0x0E) | 0x01
+        data[15-6] = uint8( ( ((h.DTS >> 15 << 1) & 0x000000000000FFFF) >> 8) &  0x00000000000000FF)
+        data[16-6] = uint8(   ((h.DTS >> 15 << 1) & 0x000000000000FFFF)  &  0x00000000000000FF) | 0x01
+
+        data[17-6] = uint8( ( ((h.DTS << 1) & 0x000000000000FFFF) >> 8) &  0x00000000000000FF)
+        data[18-6] = uint8(   ((h.DTS << 1) & 0x000000000000FFFF) &  0x00000000000000FF) |  0x01
+
         //h.DTS = uint64(data[14]&0x0E>>1) << 30
         //h.DTS = h.DTS | (uint64(data[15])<<8|uint64(data[16]))>>1<<15
         //h.DTS = h.DTS | (uint64(data[17])<<8|uint64(data[18]))>>1

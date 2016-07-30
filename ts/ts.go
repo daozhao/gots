@@ -53,7 +53,7 @@ func newPacket(data []byte) (*Packet, error) {
 	return p, nil
 }
 
-func writePacket(p Packet,playLoad []byte)(data []byte) {
+func writePacket(p *Packet)(data []byte) {
 	data = make([]byte,PacketSize)
 
 	data[0] = SyncByte

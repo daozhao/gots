@@ -31,17 +31,23 @@ func newPacket(data []byte) (*Packet, error) {
 		StreamID:     data[3],
 		PacketLength: uint16(data[4])<<8 | uint16(data[5])}
 
+	p.Payload = []byte{}
 	if hasHeader(p.StreamID) {
 		p.Header = newHeader(data)
-		p.Payload = []byte{}
 		p.Payload = append(p.Payload,data[9 + p.Header.HeaderLength:]...)
-
+	} else {
+		p.Payload = append(p.Payload,data[6:]...)
 	}
 	return p, nil
 }
 
 func writePacket(packet *Packet)(data []byte){
-	data =  make([]byte,packet.PacketLength + 6)
+
+	if hasHeader(packet.StreamID) {
+		data = make([]byte, len(packet.Payload)+ int(packet.Header.HeaderLength) + 9)
+	} else {
+		data = make([]byte, len(packet.Payload) + 6)
+	}
 //TODO: 怀疑移位有错误
 	data[0] = uint8((packet.CodePrefix & 0x00FF0000) >> 16)
 	data[1] = uint8((packet.CodePrefix & 0x0000FF00) >> 8)
@@ -49,11 +55,14 @@ func writePacket(packet *Packet)(data []byte){
 
     data[3] = packet.StreamID
 
-    data[4] = uint8(packet.PacketLength & 0xFF00) >> 8
+    data[4] = uint8((packet.PacketLength & 0xFF00) >> 8)
     data[5] = uint8(packet.PacketLength & 0x00FF)
 
     if hasHeader(packet.StreamID) {
         writeHeader(packet.Header,data[6:])
+	    copy(data[9 + packet.Header.HeaderLength:],packet.Payload)
+    } else {
+	    copy(data[6:],packet.Payload)
     }
 	return  data
 }

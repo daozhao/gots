@@ -22,32 +22,26 @@ func main() {
 	}
 	defer r.Close()
 
-    h264,err2 := os.Create("./h264output.raw")
-    if  nil != err2 {
-        fmt.Println(err2)
+    w,err2 := os.Create("./output.ts")
+    if err2 != nil {
+        fmt.Println("Create output.ts error!!!!")
+        return
     }
-    defer h264.Close()
-    aacfile,err3 := os.Create("./AACoutput.aac")
-    if  nil != err3 {
-        fmt.Println(err3)
-    }
-    defer aacfile.Close()
+    defer w.Close()
+
 	t := ts.NewReader(r, displayTSPacket, displayPAT, displayPMT)
-	p := pes.NewReader(t, displayPES)
-	for {
-		//_, err := p.Next()
-		pes, err := p.PesNext()
-		if err != nil {
-			fmt.Println(err)
+
+    wt := ts.NewWriter(w, displayTSPacket, displayPAT, displayPMT)
+
+
+	for true {
+		if _ , err := t.Next(); err != nil {
 			return
 		}
-        if 0xe0 == pes.StreamID {
-            h264.Write(pes.Payload)
-        }
-		if 0xc0 == pes.StreamID {
-			aacfile.Write(pes.Payload)
-		}
+		p := t.Packet
+        wt.WritePacket(p)
 	}
+
 }
 
 func newReader() (io.ReadCloser, error) {
@@ -75,14 +69,14 @@ func newReader() (io.ReadCloser, error) {
 }
 
 func displayTSPacket(p *ts.Packet) {
-	//fmt.Println("============================================================")
-	//fmt.Printf("TS packet [%d]\n", TSIndex)
-	//fmt.Println("============================================================")
-	//fmt.Printf("%s\n", p)
-	//fmt.Println("------------------------------------------------------------")
-	//fmt.Printf("Payload (%d) \n", len(p.Payload))
-	//fmt.Println("------------------------------------------------------------")
-	//displayPayload(p.Payload)
+	fmt.Println("============================================================")
+	fmt.Printf("TS packet [%d]\n", TSIndex)
+	fmt.Println("============================================================")
+	fmt.Printf("%s\n", p)
+	fmt.Println("------------------------------------------------------------")
+	fmt.Printf("Payload (%d) \n", len(p.Payload))
+	fmt.Println("------------------------------------------------------------")
+	displayPayload(p.Payload)
 	TSIndex++
 }
 

@@ -110,6 +110,12 @@ func writeAdaptationField(data []byte,af *AdaptationField){
 	if af.ContainsTransportPrivateData {
 		data[i] = af.TransportPrivateDataLenght
 		copy(data[i:i+int(af.TransportPrivateDataLenght)],af.PrivateData)
+		i += int(af.TransportPrivateDataLenght)
+	}
+
+	for i <= int(af.AdaptationFieldLength) {
+		data[i] = 0xFF
+		i += 1
 	}
 
 

@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"bytes"
 	"encoding/hex"
 )
 
@@ -22,18 +23,23 @@ func main() {
 	}
 	defer r.Close()
 
-    h264,err2 := os.Create("./h264output.raw")
+    pesfile,err2 := os.Create("./pes.file")
     if  nil != err2 {
         fmt.Println(err2)
     }
-    defer h264.Close()
-    aacfile,err3 := os.Create("./AACoutput.aac")
+    defer pesfile.Close()
+
+    rePesfile,err3 := os.Create("./repes.file")
     if  nil != err3 {
         fmt.Println(err3)
     }
-    defer aacfile.Close()
+
+	wt := ts.NewWriter(rePesfile, displayTSPacket, displayPAT, displayPMT)
+	repes := pes.NewWriter(wt,displayPES)
+
+    defer rePesfile.Close()
 	t := ts.NewReader(r, displayTSPacket, displayPAT, displayPMT)
-	p := pes.NewReader(t, displayPES)
+	p := pes.NewReader(t, displayPESTS)
 	for {
 		//_, err := p.Next()
 		pes, err := p.PesNext()
@@ -41,11 +47,18 @@ func main() {
 			fmt.Println(err)
 			return
 		}
-        if 0xe0 == pes.StreamID {
-            h264.Write(pes.Payload)
-        }
-		if 0xc0 == pes.StreamID {
-			aacfile.Write(pes.Payload)
+		pesfile.Write(pes.Body)
+		//rePesfile.Write(pes.Payload)
+
+		data := repes.WritePacket(pes)
+		rePesfile.Write(data)
+
+		if !bytes.Equal(data,pes.Body) {
+			fmt.Println("============================================================")
+			displayPES(pes)
+			fmt.Println("============================================================")
+			fmt.Println(hex.Dump(data))
+			fmt.Println("============================================================")
 		}
 	}
 }
@@ -100,28 +113,40 @@ func displayPMT(m *ts.ProgramMapTable) {
 	fmt.Printf("%s\n", m)
 }
 
+func displayPESTS(m *pes.Packet) {
+	//fmt.Println("------------------------------------------------------------")
+	//fmt.Printf("PES packet [%d]\n", PESIndex)
+	//fmt.Println("------------------------------------------------------------")
+	//fmt.Printf("%s\n", m)
+	//fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++")
+	//for i,p := range m.Ts {
+	//	displayPESTSPacket(p,i)
+	//}
+	//fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++")
+    //
+	//PESIndex++
+}
 func displayPES(m *pes.Packet) {
 	fmt.Println("------------------------------------------------------------")
 	fmt.Printf("PES packet [%d]\n", PESIndex)
 	fmt.Println("------------------------------------------------------------")
 	fmt.Printf("%s\n", m)
-	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++")
-	for i,p := range m.Ts {
-		displayPESTSPacket(p,i)
-	}
-	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++")
+	//fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++")
+	//for i,p := range m.Ts {
+	//	displayPESTSPacket(p,i)
+	//}
+	//fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++")
 
 	PESIndex++
 }
-
 func displayPESTSPacket(p *ts.Packet,TSIndex int) {
-    fmt.Printf("TS packet [%d]\n", TSIndex)
-    fmt.Printf("%s\n", p)
-    fmt.Println("------------------------------------------------------------")
-    fmt.Printf("Payload (%d) \n", len(p.Payload))
-    fmt.Println(hex.Dump(p.Payload))
-    fmt.Println("------------------------------------------------------------")
-    TSIndex++
+    //fmt.Printf("TS packet [%d]\n", TSIndex)
+    //fmt.Printf("%s\n", p)
+    //fmt.Println("------------------------------------------------------------")
+    //fmt.Printf("Payload (%d) \n", len(p.Payload))
+    //fmt.Println(hex.Dump(p.Payload))
+    //fmt.Println("------------------------------------------------------------")
+    //TSIndex++
 }
 
 
