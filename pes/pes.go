@@ -43,6 +43,41 @@ func newPacket(data []byte) (*Packet, error) {
 	return p, nil
 }
 
+//func MakePESPacket(streamId uint8, pts,dts uint64,rawData []byte)(*Packet){
+//    p := &Packet{
+//        CodePrefix:   0x01,
+//        StreamID:     streamId,
+//        PacketLength: 0,
+//        Payload:      rawData,
+//        Ts:           make([]*ts.Packet,0),
+//    }
+//
+//    p.Header = &Header{
+//        ScramblingControl         : 0x00,
+//        Priority                  : false,
+//        DataAlignmentIndicator    : false,
+//        Copyright                 : false,
+//        Original                  : false,
+//        ContainsPTS               : true,
+//        ContainsDTS               : false,
+//        ContainsESCR              : false,
+//        ContainsESRate            : false,
+//        ContainsDSMTrickMode      : false,
+//        ContainsAdditionalCopyInfo: false,
+//        ContainsCRC               : false,
+//        ContainsExtension         : false,
+//
+//        HeaderLength              : 5,
+//        PTS                       : pts,
+//        DTS                       : dts,
+//    }
+//
+//    if dts > 0 {
+//        p.Header.ContainsDTS  = true
+//        p.Header.HeaderLength = 10
+//    }
+//}
+
 func writePacket(packet *Packet)(data []byte){
 
 	if hasHeader(packet.StreamID) {

@@ -1,5 +1,7 @@
 package ts
 
+import "fmt"
+
 type AdaptationField struct {
 	AdaptationFieldLength             uint8
 	DiscontinuityIndicator            bool
@@ -56,14 +58,38 @@ func newAdaptationField(data []byte) *AdaptationField {
 	}
 	return af
 }
+// AdaptationFieldLength可以设置成为0,当TS包的内容不满188字节的时候需要设置AdaptationFieldLength的长度.
+func MakeAdaptationField(pcr,opcr []byte,AdaptationFieldLength uint8 )(af *AdaptationField){
+
+    af = &AdaptationField{AdaptationFieldLength: AdaptationFieldLength}
+
+	af.DiscontinuityIndicator = false
+	af.RandomAccessIndicator = false
+	af.ElementaryStreamPriorityIndicator = false
+	af.ContainsPCR = false
+	af.ContainsOPCR = false
+	if pcr != nil {
+		af.ContainsPCR = true
+		af.PCR = pcr
+	}
+	if opcr != nil {
+		af.ContainsOPCR = true
+		af.OPCR = opcr
+	}
+	af.ContainsSplicingPoint = false
+	af.ContainsTransportPrivateData = false
+	af.ContainsAdaptationFieldExtension = false
+
+    return af
+}
 
 func writeAdaptationField(data []byte,af *AdaptationField){
+//TODO: 这里的长度需要自我计算.
 
-	data[0] = af.AdaptationFieldLength
-
-	if af.AdaptationFieldLength == 0 {
-		return
-	}
+	//data[0] = af.AdaptationFieldLength
+	//if af.AdaptationFieldLength == 0 {
+	//	return
+	//}
 	data[1] = 0
 	if af.DiscontinuityIndicator {
 		data[1] |= 0x80
@@ -103,15 +129,22 @@ func writeAdaptationField(data []byte,af *AdaptationField){
 		i += 1
 	}
 	//TODO: 这里估计有问题,重复了.
-	if af.ContainsSplicingPoint {
-		data[i] = af.SpliceCountdown
-		i += 1
-	}
+	//if af.ContainsSplicingPoint {
+	//	data[i] = af.SpliceCountdown
+	//	i += 1
+	//}
 	if af.ContainsTransportPrivateData {
 		data[i] = af.TransportPrivateDataLenght
 		copy(data[i:i+int(af.TransportPrivateDataLenght)],af.PrivateData)
 		i += int(af.TransportPrivateDataLenght)
 	}
+    fmt.Println("befor af.AdaptationFieldLength=",af.AdaptationFieldLength)
+    if 0 == af.AdaptationFieldLength {
+        af.AdaptationFieldLength = uint8(i-1)
+    }
+    fmt.Println("after af.AdaptationFieldLength=",af.AdaptationFieldLength)
+
+	data[0] = af.AdaptationFieldLength
 
 	for i <= int(af.AdaptationFieldLength) {
 		data[i] = 0xFF

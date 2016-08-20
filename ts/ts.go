@@ -1,6 +1,8 @@
 package ts
 
-import "fmt"
+import (
+    "fmt"
+)
 
 const (
 	PacketSize                int    = 188
@@ -51,6 +53,21 @@ func newPacket(data []byte) (*Packet, error) {
 		}
 	}
 	return p, nil
+}
+
+func Makepacket(pid uint16,payloadUnitStartIndicator bool,containsPlayLoad bool,continuityCounter uint8,pcr []byte)(*Packet) {
+	p := &Packet{
+		SyncByte:                  SyncByte,
+		TransportErrorIndicator:   false,
+		PayloadUnitStartIndicator: payloadUnitStartIndicator,
+		TransportPriority:         false,
+		PID:                       pid,
+		TransportScramblingControl: 0,
+		ContainsAdaptationField:    false,
+		ContainsPayload:            containsPlayLoad,
+		ContinuityCounter:          continuityCounter}
+
+    return p
 }
 
 func writePacket(p *Packet)(data []byte) {

@@ -39,6 +39,15 @@ func main() {
 			return
 		}
 		p := t.Packet
+        if p.ContainsAdaptationField {
+            if 7 == p.AdaptationField.AdaptationFieldLength {
+                p.AdaptationField.AdaptationFieldLength = 0
+            } else {
+                fmt.Println("*******   AdaptationFieldLength!=7,length:", p.AdaptationField.AdaptationFieldLength)
+                displayTSPacket(p)
+            }
+        }
+
         wt.WritePacket(p)
 	}
 

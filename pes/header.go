@@ -76,7 +76,6 @@ func writeHeader(h *Header,data []byte){
 
 	data[0] = 0x00;
 	data[1] = 0x00;
-	data[2] = h.HeaderLength;
 
 	data[0] = (h.ScramblingControl << 4) & 0xF0
 	if h.Priority {
@@ -128,6 +127,10 @@ func writeHeader(h *Header,data []byte){
 
         data[12-6] = uint8( ( ((h.PTS << 1) & 0x000000000000FFFF) >> 8) &  0x00000000000000FF)
         data[13-6] = uint8(   ((h.PTS << 1) & 0x000000000000FFFF) &  0x00000000000000FF) | 0x01
+
+
+	    h.HeaderLength = 5
+	    data[2] = h.HeaderLength;
         //h.PTS = uint64(data[9]&0x0E>>1) << 30
         //h.PTS = h.PTS | (uint64(data[10])<<8|uint64(data[11]))>>1<<15
         //h.PTS = h.PTS | (uint64(data[12])<<8|uint64(data[13]))>>1
@@ -150,6 +153,8 @@ func writeHeader(h *Header,data []byte){
         data[17-6] = uint8( ( ((h.DTS << 1) & 0x000000000000FFFF) >> 8) &  0x00000000000000FF)
         data[18-6] = uint8(   ((h.DTS << 1) & 0x000000000000FFFF) &  0x00000000000000FF) |  0x01
 
+	    h.HeaderLength = 10
+	    data[2] = h.HeaderLength;
         //h.DTS = uint64(data[14]&0x0E>>1) << 30
         //h.DTS = h.DTS | (uint64(data[15])<<8|uint64(data[16]))>>1<<15
         //h.DTS = h.DTS | (uint64(data[17])<<8|uint64(data[18]))>>1

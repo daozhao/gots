@@ -10,7 +10,7 @@ import (
 	"os"
 	"encoding/hex"
     "bytes"
-    "hash/crc32"
+    //"hash/crc32"
 )
 
 var TSIndex = 1
@@ -50,8 +50,14 @@ func main() {
                fmt.Println("++++++++++++++++PAT make by self is ok")
 
             } else {
-                crc32 := crc32.ChecksumIEEE(p.Payload[1:13])
-                fmt.Printf("XXXXXXXXXXXXXXXXPAT make by self is false: crs32:%x\n",crc32)
+                //crc32 := crc32.ChecksumIEEE(p.Payload[1:13])
+                //fmt.Printf("XXXXXXXXXXXXXXXXPAT make by self is false: crs32:%x\n",crc32)
+	            fmt.Println("XXXXXXXXXXXXXXXXPAT make by self is false")
+	            //pat := ts.NewPogramAssociationTable(payload)
+	            pat := ts.MakePogramAssociationTable(256)
+                payload = ts.WritePogramAssociationTable(pat)
+
+	            displayPAT(pat)
 
                 fmt.Println(hex.Dump(p.Payload))
                 fmt.Println(hex.Dump(payload))
@@ -59,11 +65,19 @@ func main() {
             }
 
         } else if p.HasProgramMapTable(t.PAT) {
-            payload = ts.WriteProgramMapTable(t.PMT )
+            payload = ts.WriteProgramMapTable(t.PMT)
             if bytes.Equal(payload,p.Payload) {
                fmt.Println("++++++++++++++++PMT make by self is ok")
             } else {
-               fmt.Println("XXXXXXXXXXXXXXXXPMT make by self is false")
+
+	            //pmt := ts.NewProgramMapTable(payload)
+	            pmt := ts.MakeProgramMapTable(256)
+                payload = ts.WriteProgramMapTable(pmt)
+	            fmt.Println("XXXXXXXXXXXXXXXXPMT make by self is false")
+	            displayPMT(pmt)
+                fmt.Println(hex.Dump(p.Payload))
+                fmt.Println(hex.Dump(payload))
+
             }
         } else {
             wt.WritePacket(p)
