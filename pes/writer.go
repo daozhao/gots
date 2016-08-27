@@ -3,6 +3,7 @@ package pes
 import (
 	"github.com/damienlevin/gots/ts"
 	//"github.com/quarnster/util/container"
+	"fmt"
 )
 
 type Writer struct {
@@ -46,14 +47,15 @@ func (w *Writer) WritePacketToTS(p *Packet) {
     }
 
     for pos < l {
-
+        //这里的判断应该还有点问题,可能临界数值会有问题.
         if ( pos+ts.PacketSize-4 <= l ){
             tsPacket := ts.MakePacket(pid,0==pos,true,w.Writer.GetContinuitycounter(),nil,0)
             tsPacket.Payload = data[pos:pos+ts.PacketSize-4]
             pos += ts.PacketSize-4
             w.Writer.WritePacket(tsPacket)
         } else {
-            tsPacket := ts.MakePacket(pid,0==pos,true,w.Writer.GetContinuitycounter(),nil,uint8(ts.PacketSize-4-(l-pos)))
+            tsPacket := ts.MakePacket(pid,0==pos,true,w.Writer.GetContinuitycounter(),nil,uint8(ts.PacketSize-4-1-(l-pos)))
+	        //fmt.Println("end of playload len:",l-pos," adap len",ts.PacketSize-4-1-(l-pos))
             tsPacket.Payload = data[pos:l]
             pos = l
             w.Writer.WritePacket(tsPacket)
