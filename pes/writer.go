@@ -29,6 +29,39 @@ func (w *Writer) WritePacket(p *Packet)(data []byte) {
 	return data
 }
 
+func (w *Writer) WritePacketToTS(p *Packet) {
+
+	data := writePacket(p)
+
+    l := len(data)
+
+    pos := 0
+
+    var pid uint16
+    pid = 0
+    if STREAMID_AAC_CODE == p.StreamID {
+       pid = 258
+    } else if STREAMID_AVC_H264_CODE == p.StreamID {
+        pid = 257
+    }
+
+    for pos < l {
+
+        if ( pos+ts.PacketSize-4 <= l ){
+            tsPacket := ts.MakePacket(pid,0==pos,true,w.Writer.GetContinuitycounter(),nil,0)
+            tsPacket.Payload = data[pos:pos+ts.PacketSize-4]
+            pos += ts.PacketSize-4
+            w.Writer.WritePacket(tsPacket)
+        } else {
+            tsPacket := ts.MakePacket(pid,0==pos,true,w.Writer.GetContinuitycounter(),nil,uint8(ts.PacketSize-4-(l-pos)))
+            tsPacket.Payload = data[pos:l]
+            pos = l
+            w.Writer.WritePacket(tsPacket)
+        }
+    }
+}
+
+
 func (w *Writer) WriteAVCRawData(payload []byte,DataAlignmentIndicator bool,pts uint64,dts uint64)(*Packet,error) {
 
     return  w.WriteRawData(payload,STREAMID_AVC_H264_CODE,DataAlignmentIndicator,pts,dts)

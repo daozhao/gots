@@ -258,8 +258,9 @@ func WritePogramAssociationTable(pat *ProgramAssociationTable)(payload []byte) {
     //data2 := []byte{0x00, 0xb0, 0x0d, 0x00, 0x01, 0xc1, 0x00,  0x00, 0x00, 0x01, 0xe1, 0x00,}
     //copy(data,data2)
     //var crc32 uint32
+
     crc32 := makeCRC32(data[0:i])
-	//TODO: 需要计算CRC32的值.
+	//TODO: 需要计算CRC32的值.这个值好像有点问题.
     binary.BigEndian.PutUint32(data[i:i+4],crc32)
 
 	return payload

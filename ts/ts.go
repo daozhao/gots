@@ -24,7 +24,7 @@ type Packet struct {
 	Payload                    []byte
 }
 
-func newPacket(data []byte) (*Packet, error) {
+func NewPacket(data []byte) (*Packet, error) {
 	if len(data) != PacketSize {
 		return nil, fmt.Errorf("Invalid TS packet, size must be %d bytes", PacketSize)
 	}
@@ -55,7 +55,7 @@ func newPacket(data []byte) (*Packet, error) {
 	return p, nil
 }
 
-func Makepacket(pid uint16,payloadUnitStartIndicator bool,containsPlayLoad bool,continuityCounter uint8,pcr []byte)(*Packet) {
+func MakePacket(pid uint16,payloadUnitStartIndicator bool,containsPlayLoad bool,continuityCounter uint8,pcr []byte,AdaptationFieldLength uint8)(*Packet) {
 	p := &Packet{
 		SyncByte:                  SyncByte,
 		TransportErrorIndicator:   false,
@@ -67,10 +67,20 @@ func Makepacket(pid uint16,payloadUnitStartIndicator bool,containsPlayLoad bool,
 		ContainsPayload:            containsPlayLoad,
 		ContinuityCounter:          continuityCounter}
 
+    if nil != pcr {
+        p.ContainsAdaptationField = true
+        p.AdaptationField = MakeAdaptationField(pcr,nil,0)
+    }
+
+	if 0 != AdaptationFieldLength {
+		p.ContainsAdaptationField = true
+		p.AdaptationField = MakeAdaptationField(pcr,nil,AdaptationFieldLength)
+	}
+
     return p
 }
 
-func writePacket(p *Packet)(data []byte) {
+func WritePacket(p *Packet)(data []byte) {
 	data = make([]byte,PacketSize)
 
 	data[0] = SyncByte

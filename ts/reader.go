@@ -31,7 +31,7 @@ func (r *Reader) Next() (*Packet, error) {
 	if err != nil {
 		return nil, err
 	}
-	r.Packet, err = newPacket(data)
+	r.Packet, err = NewPacket(data)
 	if err != nil {
 		return nil, err
 	}
