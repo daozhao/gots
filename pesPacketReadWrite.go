@@ -114,17 +114,17 @@ func displayPMT(m *ts.ProgramMapTable) {
 }
 
 func displayPESTS(m *pes.Packet) {
-	//fmt.Println("------------------------------------------------------------")
-	//fmt.Printf("PES packet [%d]\n", PESIndex)
-	//fmt.Println("------------------------------------------------------------")
-	//fmt.Printf("%s\n", m)
-	//fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++")
-	//for i,p := range m.Ts {
-	//	displayPESTSPacket(p,i)
-	//}
-	//fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++")
-    //
-	//PESIndex++
+	fmt.Println("------------------------------------------------------------")
+	fmt.Printf("PES packet [%d]\n", PESIndex)
+	fmt.Println("------------------------------------------------------------")
+	fmt.Printf("%s\n", m)
+	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++")
+	for i,p := range m.Ts {
+		displayPESTSPacket(p,i)
+	}
+	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++")
+
+	PESIndex++
 }
 func displayPES(m *pes.Packet) {
 	fmt.Println("------------------------------------------------------------")
@@ -140,13 +140,13 @@ func displayPES(m *pes.Packet) {
 	PESIndex++
 }
 func displayPESTSPacket(p *ts.Packet,TSIndex int) {
-    //fmt.Printf("TS packet [%d]\n", TSIndex)
-    //fmt.Printf("%s\n", p)
-    //fmt.Println("------------------------------------------------------------")
-    //fmt.Printf("Payload (%d) \n", len(p.Payload))
-    //fmt.Println(hex.Dump(p.Payload))
-    //fmt.Println("------------------------------------------------------------")
-    //TSIndex++
+    fmt.Printf("TS packet [%d]\n", TSIndex)
+    fmt.Printf("%s\n", p)
+    fmt.Println("------------------------------------------------------------")
+    fmt.Printf("Payload (%d) \n", len(p.Payload))
+    fmt.Println(hex.Dump(p.Payload))
+    fmt.Println("------------------------------------------------------------")
+    TSIndex++
 }
 
 

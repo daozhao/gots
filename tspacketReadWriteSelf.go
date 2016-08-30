@@ -49,11 +49,13 @@ func main() {
 		}
         if pes.STREAMID_AAC_CODE == pesPacket.StreamID {
             wpacket,_:= wp.WriteAACRawData(pesPacket.Payload,false,pesPacket.Header.PTS)
+            //wpacket,_:= wp.WriteAACRawData(pesPacket.Payload,false,0)
             wp.WritePacketToTS(wpacket)
 
 
         } else if pes.STREAMID_AVC_H264_CODE == pesPacket.StreamID {
             wpacket,_ := wp.WriteAVCRawData(pesPacket.Payload,false,pesPacket.Header.PTS,pesPacket.Header.DTS)
+            //wpacket,_ := wp.WriteAVCRawData(pesPacket.Payload,false,0,0)
             wp.WritePacketToTS(wpacket)
 
         } else {
