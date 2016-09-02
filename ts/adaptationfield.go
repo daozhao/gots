@@ -68,14 +68,23 @@ func MakeAdaptationField(pcr,opcr []byte,AdaptationFieldLength uint8 )(af *Adapt
 	af.ElementaryStreamPriorityIndicator = false
 	af.ContainsPCR = false
 	af.ContainsOPCR = false
+    var afl uint8
+    afl = 1
 	if pcr != nil {
 		af.ContainsPCR = true
 		af.PCR = pcr
+        afl += 6
 	}
 	if opcr != nil {
 		af.ContainsOPCR = true
 		af.OPCR = opcr
+        afl += 6
 	}
+	if 0 == af.AdaptationFieldLength {
+        af.AdaptationFieldLength = afl
+    } else if afl > af.AdaptationFieldLength {
+        af.AdaptationFieldLength = afl
+    }
 	af.ContainsSplicingPoint = false
 	af.ContainsTransportPrivateData = false
 	af.ContainsAdaptationFieldExtension = false

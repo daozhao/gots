@@ -20,6 +20,7 @@ type Packet struct {
 	Payload      []byte
 	Body         []byte
     Ts           []*ts.Packet
+	HasKeyFrame   bool
 }
 
 func newPacket(data []byte) (*Packet, error) {
