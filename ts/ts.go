@@ -116,14 +116,17 @@ func WritePacket(p *Packet)(data []byte) {
 	if p.ContainsPayload {
 		if p.ContainsAdaptationField {
 			if int(PacketSize-5-int(p.AdaptationField.AdaptationFieldLength)) != len(p.Payload) {
-				fmt.Println("payload len != payload len:",len(p.Payload)," size:",PacketSize-5-int(p.AdaptationField.AdaptationFieldLength))
+				fmt.Println("payload len != payload len:",len(p.Payload)," size:",PacketSize-5-int(p.AdaptationField.AdaptationFieldLength),"had AdaptationFieldLength")
 			}
            copy(data[5+p.AdaptationField.AdaptationFieldLength:PacketSize],p.Payload)
         } else {
 			if int(PacketSize-4) != len(p.Payload) {
-				fmt.Println("payload len != payload len:",len(p.Payload)," size:",PacketSize-4)
+				fmt.Println("payload len != payload len:", len(p.Payload), " size:", PacketSize - 4, " pid:", p.PID, "not had AdaptationFieldLength")
+				//data[3] |= 0x20
+				//data[0] = 0x00
+				//copy(data[5:PacketSize],p.Payload)
 			}
-           copy(data[4:PacketSize],p.Payload)
+			copy(data[4:PacketSize],p.Payload)
         }
 	}
 

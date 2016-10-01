@@ -1,6 +1,6 @@
 package ts
 
-import "fmt"
+//import "fmt"
 
 type AdaptationField struct {
 	AdaptationFieldLength             uint8
@@ -147,11 +147,11 @@ func writeAdaptationField(data []byte,af *AdaptationField){
 		copy(data[i:i+int(af.TransportPrivateDataLenght)],af.PrivateData)
 		i += int(af.TransportPrivateDataLenght)
 	}
-    fmt.Println("befor af.AdaptationFieldLength=",af.AdaptationFieldLength)
+    //fmt.Println("befor af.AdaptationFieldLength=",af.AdaptationFieldLength)
     if 0 == af.AdaptationFieldLength {
         af.AdaptationFieldLength = uint8(i-1)
     }
-    fmt.Println("after af.AdaptationFieldLength=",af.AdaptationFieldLength)
+    //fmt.Println("after af.AdaptationFieldLength=",af.AdaptationFieldLength)
 
 	data[0] = af.AdaptationFieldLength
 

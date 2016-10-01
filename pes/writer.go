@@ -3,7 +3,7 @@ package pes
 import (
 	"github.com/damienlevin/gots/ts"
 	//"github.com/quarnster/util/container"
-	"fmt"
+	//"fmt"
 	"encoding/binary"
 )
 
@@ -48,8 +48,26 @@ func (w *Writer) WritePacketToTS(p *Packet) {
     }
 
     for pos < l {
+        //fmt.Printf("WritePacketToTS: pos:%d  l:%d\r\n",pos,l)
         //这里的判断应该还有点问题,可能临界数值会有问题.
-        if ( pos+ts.PacketSize-4 <= l ){
+        if (pos+ts.PacketSize-4-1 == l) {
+            //fmt.Printf("WritePacketToTS: 2\r\n")
+            //这个是临界点,所以把包缩小20个字节,分开传输.
+            tsPacket := ts.MakePacket(pid,0==pos,true,w.Writer.GetContinuitycounter(pid),nil,20)
+            //tsPacket := ts.MakePacket(pid,0==pos,true,w.Writer.GetContinuitycounter(pid),nil,0)
+            //tsPacket := ts.MakePacket(pid,0==pos,true,w.Writer.GetContinuitycounter(pid),nil,uint8(ts.PacketSize-4-1-1-(l-pos)))
+            //fmt.Printf("WritePacketToTS: 2 -1 pos:%d  end:%d,adaptionLength:%d\r\n",pos,pos+(l-pos),uint8(ts.PacketSize-4-1-1-(l-pos)))
+            //tsPacket.Payload = data[pos:pos+(l-pos)]
+            tsPacket.Payload = data[pos:l-20]
+            //tsPacket.Payload = data[pos:pos+ts.PacketSize+(ts.PacketSize-4-1-1-(l-pos))]
+            //fmt.Printf("WritePacketToTS: 2 -2\r\n")
+            pos = l-20
+            //pos += ts.PacketSize+(ts.PacketSize-4-1-1-(l-pos))
+            //fmt.Printf("WritePacketToTS: 2 -3\r\n")
+            w.Writer.WritePacket(tsPacket)
+            //fmt.Println("end of playload pos+ts.PacketSize-4-1 == l ")
+        } else if ( pos+ts.PacketSize-4 <= l ){
+            //fmt.Printf("WritePacketToTS: 1\r\n")
             var tsPacket *ts.Packet
             if p.HasKeyFrame {
                 tsPacket = ts.MakePacket(pid,0==pos,true,w.Writer.GetContinuitycounter(pid),w.GetPCRData(p.Header.DTS),0)
@@ -65,13 +83,8 @@ func (w *Writer) WritePacketToTS(p *Packet) {
                 pos += ts.PacketSize-4
             }
             w.Writer.WritePacket(tsPacket)
-        } else if (pos+ts.PacketSize-4-1 == l) {
-            tsPacket := ts.MakePacket(pid,0==pos,true,w.Writer.GetContinuitycounter(pid),nil,uint8(ts.PacketSize-4-1-1-(l-pos)))
-            tsPacket.Payload = data[pos:pos+ts.PacketSize+(ts.PacketSize-4-1-1-(l-pos))]
-            pos += ts.PacketSize+(ts.PacketSize-4-1-1-(l-pos))
-            w.Writer.WritePacket(tsPacket)
-            fmt.Println("end of playload pos+ts.PacketSize-4-1 == l ")
         } else {
+            //fmt.Printf("WritePacketToTS: 3\r\n")
             tsPacket := ts.MakePacket(pid,0==pos,true,w.Writer.GetContinuitycounter(pid),nil,uint8(ts.PacketSize-4-1-(l-pos)))
 	        //fmt.Println("end of playload len:",l-pos," adap len",ts.PacketSize-4-1-(l-pos))
 	        //if ts.PacketSize-4-1-(l-pos) < 9 {
